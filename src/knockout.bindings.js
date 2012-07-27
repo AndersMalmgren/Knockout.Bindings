@@ -46,7 +46,7 @@
                 $(element).datepicker("destroy");
             });
 
-            $(element).datepicker(defaultOptions);
+            $(element).datepicker(options);
         },
         defaultOptions: {}
     };
