@@ -185,6 +185,13 @@
         }
     };
 
+    ko.TabViewModel = function (id, title, model, template) {
+        this.id = ko.observable(id);
+        this.title = ko.observable(title);
+        this.model = ko.observable(model);
+        this.template = template;
+    };
+
 
     //string template source engine
     var stringTemplateSource = function (template) {
@@ -198,13 +205,6 @@
     var stringTemplateEngine = new ko.nativeTemplateEngine();
     stringTemplateEngine.makeTemplateSource = function (template) {
         return new stringTemplateSource(template);
-    };
-
-    ko.bindingHandlers.tabs.Tab = function (id, title, model, template) {
-        this.id = ko.observable(id);
-        this.title = ko.observable(title);
-        this.model = ko.observable(model);
-        this.template = template;
     };
 
     var tabsTemplate = '<ul data-bind="foreach: $data">\
