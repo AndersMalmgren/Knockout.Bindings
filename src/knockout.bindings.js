@@ -36,6 +36,8 @@
         }
     };
 
+    ko.virtualElements.allowedBindings.message = true;
+
     ko.bindingHandlers.datepicker = {
         init: function (element, valueAccessor) {
             var options = ko.utils.extend(ko.bindingHandlers.datepicker.defaultOptions, ko.utils.unwrapObservable(valueAccessor()) || {});
