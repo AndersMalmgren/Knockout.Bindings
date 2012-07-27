@@ -1,4 +1,9 @@
 (function () {
+    String.empty = "";
+    String.hasValue = function (value) {
+        return value != null && value != String.empty;
+    };
+
     //Fix for a bug in jquery UI button
     var enableUpdate = ko.bindingHandlers.enable.update;
     ko.bindingHandlers.enable.update = function (element, valueAccessor) {
