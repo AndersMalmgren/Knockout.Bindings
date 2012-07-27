@@ -15,7 +15,7 @@
 
             if (opt != null) {
                 if (opt.splash) {
-                    Sko.bindingHandlers.message.showSplash(opt.splash);
+                    ko.bindingHandlers.message.showSplash(opt.splash);
                 } else if (opt.confirm) {
                     opt.result = confirm(opt.confirm);
                 } else if (opt.alert) {
