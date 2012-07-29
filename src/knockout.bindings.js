@@ -144,19 +144,16 @@
         init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             ko.renderTemplate(tabsTemplate, bindingContext.createChildContext(valueAccessor()), { templateEngine: stringTemplateEngine }, element, "replaceChildren");
 
-            return { controlsDescendantBindings: true };
-        },
-        update: function (element, valueAccessor, allBindingsAccessor) {
-            var dependency = ko.utils.unwrapObservable(valueAccessor()),
-           currentIndex = $(element).tabs("option", "selected") || 0,
-           config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
+            var tabs = ko.utils.unwrapObservable(valueAccessor())
+            config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
+
             if (config.selectedTab && ko.isObservable(config.selectedTab)) {
                 var updating = false;
                 var onSelectedChangeCallback = function (value) {
                     if (updating) return;
 
                     updating = true;
-                    var newIndex = dependency.indexOf(ko.utils.arrayFirst(dependency, function (item) {
+                    var newIndex = tabs.indexOf(ko.utils.arrayFirst(tabs, function (item) {
                         return ko.utils.unwrapObservable(item.model) == value;
                     }));
 
@@ -173,16 +170,24 @@
                     if (updating) return;
 
                     updating = true;
-                    config.selectedTab(ko.utils.unwrapObservable(dependency[ui.index].model));
+                    config.selectedTab(ko.utils.unwrapObservable(tabs[ui.index].model));
                     updating = false;
                 };
+
+                $(element).tabs(config);
             }
 
-            //make sure that elements are set from template before calling tabs API
-            setTimeout(function () {
-                $(element).tabs("destroy").tabs(config).tabs("option", "selected", currentIndex);
-            }, 0);
+            return { controlsDescendantBindings: true };
+        },
+        update: function (element, valueAccessor, allBindingsAccessor) {
+            var tabs = ko.utils.unwrapObservable(valueAccessor()),
+            config = $(element).tabs("option");            
+
+            if($(element).tabs("length") == tabs.length) return;
+
+            $(element).tabs("destroy").tabs(config); //.tabs("option", "selected", currentIndex);
         }
+
     };
 
     ko.TabViewModel = function (id, title, model, template) {
@@ -191,7 +196,6 @@
         this.model = ko.observable(model);
         this.template = template;
     };
-
 
     //string template source engine
     var stringTemplateSource = function (template) {
@@ -208,14 +212,14 @@
     };
 
     var tabsTemplate = '<ul data-bind="foreach: $data">\
-                <li>\
-                <a data-bind="text: title, attr: { href: \'#tab-\' + id() }"></a>\
-            </li>\
-        </ul>\
-        <!-- ko foreach: $data -->\
-        <div data-bind="attr: { id: \'tab-\' + id() }">\
-            <h2 data-bind="text: title"></h2>\
-            <div data-bind="template: { name: template, data: model }"></div>\
-        </div>\
-        <!-- /ko -->';
+    <li>\
+        <a data-bind="text: title, attr: { href: \'#tab-\' + id() }"></a>\
+    </li>\
+</ul>\
+<!-- ko foreach: $data -->\
+<div data-bind="attr: { id: \'tab-\' + id() }">\
+    <h2 data-bind="text: title"></h2>\
+    <div data-bind="template: { name: template, data: model }"></div>\
+</div>\
+<!-- /ko -->';
 } ());
