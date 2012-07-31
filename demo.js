@@ -13,6 +13,7 @@ ViewModel = function () {
         new ko.TabViewModel(2, "Tab 2", { content: "Content of tab 2" }, "tab-template")]);
 
     this.selectedTabModel = ko.observable();
+    this.tabsEnabled = ko.observable(true);
 };
 
 
@@ -38,10 +39,16 @@ ViewModel.prototype = {
     setTabTwo: function () {
         this.selectedTabModel(this.tabs()[1].model());
     },
+    toggleTabTwo: function() {
+        this.tabs()[1].enable(!this.tabs()[1].enable());
+    },
+    toggleTabs: function() {
+        this.tabsEnabled(!this.tabsEnabled());
+    },
     addTab: function () {
         var newIndex = this.tabs().length + 1;
         this.tabs.push(new ko.TabViewModel(newIndex, "Tab " + newIndex, { content: "Content of tab " + newIndex }, "tab-template"));
-    }
+    },
 };
 
 $(document).ready(function () { ko.applyBindings(new ViewModel()); });

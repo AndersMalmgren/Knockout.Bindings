@@ -41,8 +41,10 @@
             <input data-bind="label: { caption: 'Label with reference to input' }" type="checkbox" />
         </div>
 
-        <div data-bind="tabs: tabs, tabsOptions: { selectedTab: selectedTabModel }"></div>
+        <div data-bind="tabs: tabs, tabsOptions: { selectedTab: selectedTabModel, enable: tabsEnabled }"></div>
         <button data-bind="click: setTabTwo">Set tab 2 from view model</button>
+        <button data-bind="click: toggleTabTwo">Toggle tab 2</button>
+        <button data-bind="click: toggleTabs">Toggle tabs</button>                
         <button data-bind="click: addTab">Add new Tab</button>
 
         <script id="tab-template" type="text/html">

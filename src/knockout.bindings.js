@@ -147,6 +147,20 @@
             var tabs = ko.utils.unwrapObservable(valueAccessor())
             config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
 
+            if (config.enable && ko.isObservable(config.enable)) {
+                config.enable.subscribe(function (enable) {
+                    if (enable) {
+                        $(element).tabs({ disabled: []});
+                    } else {
+                        var index = 0;                    
+                        var indexes = ko.utils.arrayMap(tabs, function () { return index++ });
+                        $(element).tabs({ disabled: indexes });
+                    }
+                });
+
+                config.enable = null;
+            }
+
             if (config.selectedTab && ko.isObservable(config.selectedTab)) {
                 var updating = false;
                 var onSelectedChangeCallback = function (value) {
@@ -180,11 +194,28 @@
             return { controlsDescendantBindings: true };
         },
         update: function (element, valueAccessor, allBindingsAccessor) {
-            var tabs = ko.utils.unwrapObservable(valueAccessor()),
-            config = $(element).tabs("option");            
+            var tabs = ko.utils.unwrapObservable(valueAccessor());
 
-            if($(element).tabs("length") == tabs.length) return;
+            ko.utils.arrayForEach(tabs, function (tab) {
+                if (tab.enable.subscribed) return;
+                tab.enable.subscribed = true; //Hack to avoid multiple subscriptions
+                tab.enable.subscribe(function (enable) {
+                    var index = tabs.indexOf(ko.utils.arrayFirst(tabs, function (item) {
+                        return item == tab;
+                    }));
 
+                    if (enable) {
+                        $(element).tabs("enable", index);
+                    } else {
+                        $(element).tabs("disable", index);
+                    }
+
+                });
+            });
+
+            if ($(element).tabs("length") == tabs.length) return;
+
+            config = $(element).tabs("option");
             $(element).tabs("destroy").tabs(config); //.tabs("option", "selected", currentIndex);
         }
 
@@ -195,6 +226,7 @@
         this.title = ko.observable(title);
         this.model = ko.observable(model);
         this.template = template;
+        this.enable = ko.observable(true);
     };
 
     //string template source engine
