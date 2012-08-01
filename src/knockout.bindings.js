@@ -187,9 +187,9 @@
                     config.selectedTab(ko.utils.unwrapObservable(tabs[ui.index].model));
                     updating = false;
                 };
-
-                $(element).tabs(config);
             }
+
+            $(element).tabs(config);
 
             return { controlsDescendantBindings: true };
         },
