@@ -26,6 +26,7 @@
             <button data-bind="button: { icon: 'ui-icon-arrowreturnthick-1-w' }">This is a jQuery button with icon</button>
             <p>jQuery buttons have a bug so if the button is disabled from the click handler the layout is broken (It looks clicked)</p>
             <button data-bind="click: disableButton, enable: buttonEnabled, button: {}">This button can handle being disabled from click handler</button>  
+            <button data-bind="click: increaseButton,  button: { label: buttonLabel }"></button>
         </div>
         <div>
             <input data-bind="datepicker: date, datepickerOptions: { minDate: new Date() }" />

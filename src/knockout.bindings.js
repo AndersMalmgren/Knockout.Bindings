@@ -79,7 +79,7 @@
 
     ko.bindingHandlers.button = {
         init: function (element, valueAccessor) {
-            var options = ko.utils.unwrapObservable(valueAccessor()) || {};
+            var options = ko.utils.unwrapObservable(ko.toJS(valueAccessor())) || {};
             var icon = options['icon'];
             if (icon != null) {
                 options.icons = { primary: icon };
@@ -90,6 +90,13 @@
             });
 
             $(element).button(options);
+        },
+        update: function (element, valueAccessor) {
+            var options = ko.toJS(valueAccessor());
+
+            if (options) {
+                $(element).button(options);
+            }
         }
     };
 
