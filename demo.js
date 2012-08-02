@@ -2,6 +2,7 @@ ViewModel = function () {
     this.message = ko.observable();
     this.date = ko.observable(new Date());
     this.buttonEnabled = ko.observable(true);
+    this.buttonLabel = ko.observable(0);
 
     this.dialogItem = ko.observable();
     this.dialogTitle = ko.computed(function () {
@@ -32,6 +33,9 @@ ViewModel.prototype = {
     },
     disableButton: function () {
         this.buttonEnabled(false);
+    },
+    increaseButton: function() {
+        this.buttonLabel(this.buttonLabel() + 1);        
     },
     showDialog: function () {
         this.dialogItem({ message: "This is a dialog", title: "Databindable title" });
