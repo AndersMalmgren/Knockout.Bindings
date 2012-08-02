@@ -1,3 +1,8 @@
+// Knockout.Bindings
+// (c) Anders Malmgren - https://github.com/AndersMalmgren/Knockout.Bindings
+// License: MIT (http://www.opensource.org/licenses/mit-license.php)
+// Datepicker and some other parts of library (C) Ryan Niemeyer
+
 (function () {
     String.empty = "";
     String.hasValue = function (value) {
