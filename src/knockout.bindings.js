@@ -201,6 +201,20 @@
                 };
             }
 
+            if ($.address) {
+                var orgSelect = config.select;
+                config.select = function (event, ui) {
+                    if (orgSelect) orgSelect(event, ui);
+                    window.location.hash = ui.tab.hash;
+                };
+
+                $.address.change(function () {
+                    updating = true;
+                    $(element).tabs("select", window.location.hash);
+                    updating = false;
+                });
+            }
+
             $(element).tabs(config);
 
             return { controlsDescendantBindings: true };
