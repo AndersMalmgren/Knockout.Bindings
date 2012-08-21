@@ -227,7 +227,7 @@
 
             if (setState != null) {
                 var orgSelect = config.select;
-                var notNavigating = true;
+                var notNavigating = false;
                 var navigating = false;
                 config.select = function (event, ui) {
                     notNavigating = true;
