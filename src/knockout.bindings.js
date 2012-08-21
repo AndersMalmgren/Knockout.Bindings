@@ -162,9 +162,9 @@
             if (config.enable && ko.isObservable(config.enable)) {
                 config.enable.subscribe(function (enable) {
                     if (enable) {
-                        $(element).tabs({ disabled: []});
+                        $(element).tabs({ disabled: [] });
                     } else {
-                        var index = 0;                    
+                        var index = 0;
                         var indexes = ko.utils.arrayMap(tabs, function () { return index++ });
                         $(element).tabs({ disabled: indexes });
                     }
@@ -179,7 +179,7 @@
                     if (updating) return;
 
                     updating = true;
-                    var newIndex = tabs.indexOf(ko.utils.arrayFirst(tabs, function (item) {
+                    var newIndex = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
                         return ko.utils.unwrapObservable(item.model) == value;
                     }));
 
@@ -201,18 +201,43 @@
                 };
             }
 
-            if ($.address) {
-                var orgSelect = config.select;
-                config.select = function (event, ui) {
-                    if (orgSelect) orgSelect(event, ui);
-                    window.location.hash = ui.tab.hash;
+            var onHistory = function () {
+                if (notNavigating) return;
+                if (String.hasValue(window.location.hash)) {
+                    navigating = true;
+                    $(element).tabs("select", window.location.hash);
+                    navigating = false;
+                }
+            };
+
+            if (history && history.pushState) {
+                var setState = function (state) {
+                    history.pushState(state, null, state);
                 };
 
-                $.address.change(function () {
-                    updating = true;
-                    $(element).tabs("select", window.location.hash);
-                    updating = false;
-                });
+                window.onpopstate = onHistory;
+            }
+            else if ($.address) {
+                var setState = function (state) {
+                    window.location.hash = state;
+                };
+
+                $.address.change(onHistory);
+            }
+
+            if (setState != null) {
+                var orgSelect = config.select;
+                var notNavigating = true;
+                var navigating = false;
+                config.select = function (event, ui) {
+                    notNavigating = true;
+                    if (orgSelect) orgSelect(event, ui);
+
+                    if (!navigating) {
+                        setState(ui.tab.hash);
+                    }
+                    notNavigating = false;
+                };
             }
 
             $(element).tabs(config);
@@ -226,7 +251,7 @@
                 if (tab.enable.subscribed) return;
                 tab.enable.subscribed = true; //Hack to avoid multiple subscriptions
                 tab.enable.subscribe(function (enable) {
-                    var index = tabs.indexOf(ko.utils.arrayFirst(tabs, function (item) {
+                    var index = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
                         return item == tab;
                     }));
 
@@ -242,7 +267,7 @@
             if ($(element).tabs("length") == tabs.length) return;
 
             config = $(element).tabs("option");
-            $(element).tabs("destroy").tabs(config); //.tabs("option", "selected", currentIndex);
+            $(element).tabs("destroy").tabs(config);
         }
 
     };
