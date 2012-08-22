@@ -9,6 +9,16 @@
         return value != null && value != String.empty;
     };
 
+    var extendLiteral = function (target, source) {
+        for (var index in source) {
+            if (target[index] == null) {
+                target[index] = source[index];
+            }
+        }
+
+        return target;
+    }
+
     //Fix for a bug in jquery UI button
     var enableUpdate = ko.bindingHandlers.enable.update;
     ko.bindingHandlers.enable.update = function (element, valueAccessor) {
@@ -20,12 +30,18 @@
     };
 
     ko.bindingHandlers.message = {
+        defaultOptions: { 
+            splashTimeout: 1000,
+            show: "fade",
+            hide: "fade"
+        },
         update: function (element, valueAccessor) {
             var opt = ko.utils.unwrapObservable(valueAccessor());
 
             if (opt != null) {
+                extendLiteral(opt, ko.bindingHandlers.message.defaultOptions);                
                 if (opt.splash) {
-                    ko.bindingHandlers.message.showSplash(opt.splash);
+                    ko.bindingHandlers.message.showSplash(opt.splash, opt);
                 } else if (opt.confirm) {
                     opt.result = confirm(opt.confirm);
                 } else if (opt.alert) {
@@ -33,14 +49,14 @@
                 }
             }
         },
-        showSplash: function (text) {
+        showSplash: function (text, opt) {
             var splash = $("<div id='splash'/>");
             splash.html(text).appendTo("body").dialog({
-                show: "fade",
-                hide: "fade",
+                show: opt.show,
+                hide: opt.hide,
                 close: function () { splash.remove(); },
                 open: function () {
-                    setTimeout(function () { splash.dialog("close") }, 1000);
+                    setTimeout(function () { splash.dialog("close") }, opt.splashTimeout);
                 }
             });
         }
