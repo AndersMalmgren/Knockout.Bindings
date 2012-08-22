@@ -52,7 +52,7 @@ ViewModel.prototype = {
     addTab: function () {
         var newIndex = this.tabs().length + 1;
         this.tabs.push(new ko.TabViewModel(newIndex, "Tab " + newIndex, { content: "Content of tab " + newIndex }, "tab-template"));
-    },
+    }
 };
 
 $(document).ready(function () { ko.applyBindings(new ViewModel()); });
