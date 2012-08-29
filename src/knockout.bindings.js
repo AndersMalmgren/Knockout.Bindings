@@ -99,12 +99,14 @@
     };
 
     ko.bindingHandlers.button = {
+        initIcon: function (options) {
+            if (options.icon) {
+                options.icons = { primary: options.icon };
+            }
+        },
         init: function (element, valueAccessor) {
             var options = ko.utils.unwrapObservable(ko.toJS(valueAccessor())) || {};
-            var icon = options['icon'];
-            if (icon != null) {
-                options.icons = { primary: icon };
-            }
+            ko.bindingHandlers.button.initIcon(options);
 
             ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
                 $(element).button("destroy");
@@ -114,6 +116,7 @@
         },
         update: function (element, valueAccessor) {
             var options = ko.toJS(valueAccessor());
+            ko.bindingHandlers.button.initIcon(options);
 
             if (options) {
                 $(element).button(options);
