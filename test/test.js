@@ -39,7 +39,7 @@
 
     test("When updating message observable with a confirm message", function () {
         var text = "Test";
-        alert = function (value) {
+        window.alert = function (value) {
             equal(value, text, "It should show a alert message with correct text");
         };
         setupMessageTest({ alert: text });
@@ -49,7 +49,7 @@
         var text = "Test";
         var confirmResult = "Test";
 
-        confirm = function (value) {
+        window.confirm = function (value) {
             equal(value, text, "It should show a confirm message with correct text");
             return confirmResult;
         };
