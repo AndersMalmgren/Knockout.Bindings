@@ -47,10 +47,13 @@
             <p>The built in value binding for options cant handle when the selected item and the corresponding item does not have the same object reference (A common scenario with JSON objects)</P>
             <select data-bind="options: optionItems,
                     optionsText: 'text',
-                    selected: { value: selectedOption, key: getOptionItemKey },
+                    selected: selectedOption,
+                    optionsKey: getOptionItemKey,
                     optionsCaption: ' '">
             </select>
-            <span data-bind="text: selectedOption().text"></span>
+            <!-- ko with: selectedOption -->
+            <span data-bind="text: text"></span>
+            <!-- /ko -->
         </div>
 
         <div data-bind="tabs: tabs, tabsOptions: { selectedTab: selectedTabModel, enable: tabsEnabled }"></div>

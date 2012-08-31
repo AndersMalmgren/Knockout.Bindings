@@ -19,6 +19,17 @@
         return target;
     }
 
+    var writeValueToProperty = function (property, allBindingsAccessor, key, value, checkIfDifferent) {
+        if (!property || !ko.isWriteableObservable(property)) {
+            var propWriters = allBindingsAccessor()['_ko_property_writers'];
+            if (propWriters && propWriters[key])
+                propWriters[key](value);
+        } else if (!checkIfDifferent || property() !== value) {
+            property(value);
+        }
+    }
+
+
     //Fix for a bug in jquery UI button
     var enableUpdate = ko.bindingHandlers.enable.update;
     ko.bindingHandlers.enable.update = function (element, valueAccessor) {
@@ -30,7 +41,7 @@
     };
 
     ko.bindingHandlers.message = {
-        defaultOptions: { 
+        defaultOptions: {
             splashTimeout: 1000,
             show: "fade",
             hide: "fade"
@@ -39,7 +50,7 @@
             var opt = ko.utils.unwrapObservable(valueAccessor());
 
             if (opt != null) {
-                extendLiteral(opt, ko.bindingHandlers.message.defaultOptions);                
+                extendLiteral(opt, ko.bindingHandlers.message.defaultOptions);
                 if (opt.splash) {
                     ko.bindingHandlers.message.showSplash(opt.splash, opt);
                 } else if (opt.confirm) {
@@ -173,18 +184,19 @@
 
     ko.bindingHandlers.selected = {
         init: function (element, valueAccessor, allBindingsAccessor) {
-            var options = valueAccessor();
+            var selected = valueAccessor();
             var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
+            var key = allBindingsAccessor().optionsKey;
 
             var observable = ko.computed({
                 read: function () {
-                    var value = ko.utils.unwrapObservable(options.value);
+                    var value = ko.utils.unwrapObservable(selected);
                     return ko.utils.arrayFirst(items, function (item) {
-                        return value != null ? options.key(item) == options.key(value) : null;
+                        return value != null ? key(item) == key(value) : null;
                     });
                 },
                 write: function (value) {
-                    options.value(value);
+                    writeValueToProperty(selected, allBindingsAccessor, "selected", value);
                 }
             });
 

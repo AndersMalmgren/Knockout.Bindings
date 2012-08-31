@@ -17,7 +17,7 @@ ViewModel = function () {
     this.tabsEnabled = ko.observable(true);
 
     this.optionItems = ko.observableArray([{ text: "Test1" }, { text: "Test2"}]);
-    this.selectedOption = ko.observable({ text: "Test1" });   
+    this.selectedOption = ko.observable({ text: "Test1" });
 };
 
 

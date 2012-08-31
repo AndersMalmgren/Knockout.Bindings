@@ -272,7 +272,7 @@
             return item.name;
         };
 
-        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: { value: selected, key: key} }, function (select, args) {
+        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: selected, optionsKey: key }, function (select, args) {
             args.async = true;
             setTimeout(function () {
                 equal($(":selected", select).html(), expected);
