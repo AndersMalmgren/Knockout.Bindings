@@ -5,13 +5,20 @@
 (function () {
     module("Message binding");
 
-    ko.test = function (tag, binding, test, configureElement) {
+    ko.test = function (tag, binding, test) {
         var element = $("<" + tag + "/>");
         element.appendTo("body");
         ko.applyBindingsToNode(element[0], binding);
-        test(element);
+        var args = {
+            clean: function () {
+                element.remove();
+            }
+        };
+        test(element, args);
 
-        element.remove();
+        if (!args.async) {
+            args.clean();
+        }
     };
 
     var setupMessageTest = function (opt) {
@@ -251,7 +258,27 @@
         tabsTest({ selectedTab: ko.observable(null) }, function (element, tabs, addTab) {
             addTab();
             ok(element.find("ul li:last").attr("class") != null, "It should add jQuery tab stuff to button");
-            equal(element.find("div.ui-tabs-panel").length , 3, "It should add jQuery tab stuff to the tab itself");
+            equal(element.find("div.ui-tabs-panel").length, 3, "It should add jQuery tab stuff to the tab itself");
+        });
+    });
+
+    module("Selected Binding");
+
+    asyncTest("When using a selected binding with preselected item", function () {
+        var expected = "test2";
+        var items = ko.observableArray([{ name: "test1" }, { name: expected}]);
+        selected = ko.observable({ name: expected });
+        var key = function (item) {
+            return item.name;
+        };
+
+        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: { value: selected, key: key} }, function (select, args) {
+            args.async = true;
+            setTimeout(function () {
+                equal($(":selected", select).html(), expected);
+                args.clean();
+                start();
+            }, 1);
         });
     });
 })();
