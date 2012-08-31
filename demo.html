@@ -43,6 +43,16 @@
             <input data-bind="label: { caption: 'Label with reference to input' }" type="checkbox" />
         </div>
 
+        <div>
+            <p>The built in value binding for options cant handle when the selected item and the corresponding item does not have the same object reference (A common scenario with JSON objects)</P>
+            <select data-bind="options: optionItems,
+                    optionsText: 'text',
+                    selected: { value: selectedOption, key: getOptionItemKey },
+                    optionsCaption: ' '">
+            </select>
+            <span data-bind="text: selectedOption().text"></span>
+        </div>
+
         <div data-bind="tabs: tabs, tabsOptions: { selectedTab: selectedTabModel, enable: tabsEnabled }"></div>
         <button data-bind="click: setTabTwo">Set tab 2 from view model</button>
         <button data-bind="click: toggleTabTwo">Toggle tab 2</button>
@@ -53,4 +63,4 @@
             <span data-bind="text: content"></span>
         </script>
     </body>
-</html>
+</html></p>

@@ -171,6 +171,27 @@
         }
     };
 
+    ko.bindingHandlers.selected = {
+        init: function (element, valueAccessor, allBindingsAccessor) {
+            var options = valueAccessor();
+            var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
+
+            var observable = ko.computed({
+                read: function () {
+                    var value = ko.utils.unwrapObservable(options.value);
+                    return ko.utils.arrayFirst(items, function (item) {
+                        return value != null ? options.key(item) == options.key(value) : null;
+                    });
+                },
+                write: function (value) {
+                    options.value(value);
+                }
+            });
+
+            ko.applyBindingsToNode(element, { value: observable });
+        }
+    };
+
     ko.bindingHandlers.tabs = {
         init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             ko.renderTemplate(tabsTemplate, bindingContext.createChildContext(valueAccessor()), { templateEngine: stringTemplateEngine }, element, "replaceChildren");

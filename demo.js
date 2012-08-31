@@ -15,6 +15,9 @@ ViewModel = function () {
 
     this.selectedTabModel = ko.observable();
     this.tabsEnabled = ko.observable(true);
+
+    this.optionItems = ko.observableArray([{ text: "Test1" }, { text: "Test2"}]);
+    this.selectedOption = ko.observable({ text: "Test1" });   
 };
 
 
@@ -52,6 +55,9 @@ ViewModel.prototype = {
     addTab: function () {
         var newIndex = this.tabs().length + 1;
         this.tabs.push(new ko.TabViewModel(newIndex, "Tab " + newIndex, { content: "Content of tab " + newIndex }, "tab-template"));
+    },
+    getOptionItemKey: function (item) {
+        return item.text;
     }
 };
 
