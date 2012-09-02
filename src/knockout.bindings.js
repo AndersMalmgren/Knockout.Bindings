@@ -186,13 +186,13 @@
         init: function (element, valueAccessor, allBindingsAccessor) {
             var selected = valueAccessor();
             var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
-            var key = allBindingsAccessor().optionsKey;
+            var key = allBindingsAccessor().optionsKey ? allBindingsAccessor().optionsKey : allBindingsAccessor().optionsText;
 
             var observable = ko.computed({
                 read: function () {
                     var value = ko.utils.unwrapObservable(selected);
                     return ko.utils.arrayFirst(items, function (item) {
-                        return value != null ? key(item) == key(value) : null;
+                        return value != null ? item[key] == value[key] : false;
                     });
                 },
                 write: function (value) {
