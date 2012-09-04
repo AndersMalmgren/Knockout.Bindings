@@ -192,7 +192,7 @@
                 read: function () {
                     var value = ko.utils.unwrapObservable(selected);
                     return ko.utils.arrayFirst(items, function (item) {
-                        return value != null ? item[key] == value[key] : false;
+                        return value != null ? ko.utils.unwrapObservable(item[key]) == ko.utils.unwrapObservable(value[key]) : false;
                     });
                 },
                 write: function (value) {

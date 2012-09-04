@@ -267,10 +267,7 @@
     asyncTest("When using a selected binding with preselected item", function () {
         var expected = "test2";
         var items = ko.observableArray([{ name: "test1" }, { name: expected}]);
-        selected = ko.observable({ name: expected });
-        var key = function (item) {
-            return item.name;
-        };
+        var selected = ko.observable({ name: expected });
 
         ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: selected }, function (select, args) {
             args.async = true;
@@ -281,4 +278,20 @@
             }, 1);
         });
     });
+
+    asyncTest("When key property is a observable for selected binding", function () {
+        var expected = "Test";
+        var items = [{ test: "test2" }, { test: ko.observable(expected)}];
+        var selected = ko.observable({ test: expected });
+
+
+        ko.test("select", { options: items, optionsText: "test", optionsCaption: " ", selected: selected }, function (select, args) {
+            args.async = true;
+            setTimeout(function () {
+                equal($(":selected", select).html(), expected);
+                args.clean();
+                start();
+            }, 1);
+        });
+    })
 })();
