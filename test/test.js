@@ -44,7 +44,7 @@
         }, 50)
     })
 
-    test("When updating message observable with a confirm message", function () {
+    test("When updating message observable with a alert message", function () {
         var text = "Test";
         window.alert = function (value) {
             equal(value, text, "It should show a alert message with correct text");
@@ -52,7 +52,7 @@
         setupMessageTest({ alert: text });
     });
 
-    test("When updating message observable with a alert message", function () {
+    test("When updating message observable with a confirm message", function () {
         var text = "Test";
         var confirmResult = "Test";
 
@@ -63,7 +63,7 @@
 
         var args = { confirm: text };
         setupMessageTest(args);
-        equal(args.result, confirmResult);
+        equal(args.result, confirmResult, "It should have correct confirm result");
     });
 
     module("Datepicker binding");
@@ -195,7 +195,7 @@
     test("When using a label binding and click on the label", function () {
         labelTest({}, function (checkbox, label) {
             label.click();
-            equal(checkbox.is(":checked"), true);
+            equal(checkbox.is(":checked"), true, "It should effect input also");
         });
     });
 
@@ -264,34 +264,31 @@
 
     module("Selected Binding");
 
-    asyncTest("When using a selected binding with preselected item", function () {
-        var expected = "test2";
-        var items = ko.observableArray([{ name: "test1" }, { name: expected}]);
-        var selected = ko.observable({ name: expected });
-
-        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: selected }, function (select, args) {
+    var selectedBindingTest = function (items, selected, expected) {
+        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: ko.observable(selected) }, function (select, args) {
             args.async = true;
             setTimeout(function () {
-                equal($(":selected", select).html(), expected);
+                equal($(":selected", select).html(), expected, "It should set correct selected item");
                 args.clean();
                 start();
             }, 1);
         });
+    };
+
+    asyncTest("When using a selected binding with preselected item", function () {
+        var expected = "test2";
+        var items = ko.observableArray([{ name: "test1" }, { name: expected}]);
+        var selected = { name: expected };
+
+        selectedBindingTest(items, selected, expected);
     });
 
     asyncTest("When key property is a observable for selected binding", function () {
         var expected = "Test";
-        var items = [{ test: "test2" }, { test: ko.observable(expected)}];
-        var selected = ko.observable({ test: expected });
+        var items = [{ name: "test2" }, { name: ko.observable(expected)}];
+        var selected = { name: expected };
 
 
-        ko.test("select", { options: items, optionsText: "test", optionsCaption: " ", selected: selected }, function (select, args) {
-            args.async = true;
-            setTimeout(function () {
-                equal($(":selected", select).html(), expected);
-                args.clean();
-                start();
-            }, 1);
-        });
+        selectedBindingTest(items, selected, expected);
     })
 })();
