@@ -210,15 +210,18 @@
 
             var tabs = ko.utils.unwrapObservable(valueAccessor())
             config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
+            config.initialized = config.initialized || false;
 
             if (config.enable && ko.isObservable(config.enable)) {
                 config.enable.subscribe(function (enable) {
-                    if (enable) {
-                        $(element).tabs({ disabled: [] });
-                    } else {
-                        var index = 0;
-                        var indexes = ko.utils.arrayMap(tabs, function () { return index++ });
-                        $(element).tabs({ disabled: indexes });
+                    if(config.initialized){                    
+                        if (enable) {
+                            $(element).tabs({ disabled: [] });
+                        } else {
+                            var index = 0;
+                            var indexes = ko.utils.arrayMap(tabs, function () { return index++ });
+                            $(element).tabs({ disabled: indexes });
+                        }
                     }
                 });
 
@@ -235,7 +238,9 @@
                         return ko.utils.unwrapObservable(item.model) == value;
                     }));
 
-                    $(element).tabs("option", "selected", newIndex);
+                    if(config.initialized){  
+                        $(element).tabs("option", "selected", newIndex);
+                    }
 
                     config.selected = newIndex;
                     updating = false;
@@ -257,7 +262,9 @@
                 if (notNavigating) return;
                 if (String.hasValue(window.location.hash)) {
                     navigating = true;
-                    $(element).tabs("select", window.location.hash);
+                    if(config.initialized){  
+                        $(element).tabs("select", window.location.hash);
+                    }
                     navigating = false;
                 }
             };
@@ -293,7 +300,8 @@
             }
 
             $(element).tabs(config);
-
+            config.initialized = true;
+            
             return { controlsDescendantBindings: true };
         },
         update: function (element, valueAccessor, allBindingsAccessor) {
