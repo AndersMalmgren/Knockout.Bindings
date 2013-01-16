@@ -1,368 +1,294 @@
-// Knockout.Bindings
-// (c) Anders Malmgren - https://github.com/AndersMalmgren/Knockout.Bindings
-// License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Datepicker and some other parts of library (C) Ryan Niemeyer
+/// Requires resharper 6 or greater or use test.htm
+/// <reference path="knockout-2.1.0.js"/>
+/// <reference path="~/../src/knockout.binding.js"/>
 
 (function () {
-    String.empty = "";
-    String.hasValue = function (value) {
-        return value != null && value != String.empty;
-    };
+    module("Message binding");
 
-    var extendLiteral = function (target, source) {
-        for (var index in source) {
-            if (target[index] == null) {
-                target[index] = source[index];
+    ko.test = function (tag, binding, test) {
+        var element = $("<" + tag + "/>");
+        element.appendTo("body");
+        ko.applyBindingsToNode(element[0], binding);
+        var args = {
+            clean: function () {
+                element.remove();
             }
-        }
+        };
+        test(element, args);
 
-        return target;
-    }
-
-    var writeValueToProperty = function (property, allBindingsAccessor, key, value, checkIfDifferent) {
-        if (!property || !ko.isWriteableObservable(property)) {
-            var propWriters = allBindingsAccessor()['_ko_property_writers'];
-            if (propWriters && propWriters[key])
-                propWriters[key](value);
-        } else if (!checkIfDifferent || property() !== value) {
-            property(value);
-        }
-    }
-
-
-    //Fix for a bug in jquery UI button
-    var enableUpdate = ko.bindingHandlers.enable.update;
-    ko.bindingHandlers.enable.update = function (element, valueAccessor) {
-        enableUpdate(element, valueAccessor);
-        var value = ko.utils.unwrapObservable(valueAccessor());
-        if (!value || value == null) {
-            $(element).removeClass("ui-state-hover ui-state-focus");
+        if (!args.async) {
+            args.clean();
         }
     };
 
-    ko.bindingHandlers.message = {
-        defaultOptions: {
-            splashTimeout: 1000,
-            show: "fade",
-            hide: "fade"
-        },
-        update: function (element, valueAccessor) {
-            var opt = ko.utils.unwrapObservable(valueAccessor());
+    var setupMessageTest = function (opt) {
+        var message = ko.observable();
 
-            if (opt != null) {
-                extendLiteral(opt, ko.bindingHandlers.message.defaultOptions);
-                if (opt.splash) {
-                    ko.bindingHandlers.message.showSplash(opt.splash, opt);
-                } else if (opt.confirm) {
-                    opt.result = confirm(opt.confirm);
-                } else if (opt.alert) {
-                    alert(opt.alert);
-                }
-            }
-        },
-        showSplash: function (text, opt) {
-            var splash = $("<div id='splash'/>");
-            splash.html(text).appendTo("body").dialog({
-                show: opt.show,
-                hide: opt.hide,
-                close: function () { splash.remove(); },
-                open: function () {
-                    setTimeout(function () { splash.dialog("close") }, opt.splashTimeout);
-                }
-            });
-        }
+        ko.test("div", { message: message }, function () {
+            message(opt);
+        });
     };
 
-    ko.virtualElements.allowedBindings.message = true;
+    asyncTest("When updating message observable with a splash message", function () {
+        var text = "Test";
+        var splashQuery = "#splash";
 
-    ko.bindingHandlers.datepicker = {
-        init: function (element, valueAccessor, allBindingsAccessor) {
-            //initialize datepicker with some optional options
-            var options = allBindingsAccessor().datepickerOptions || {};
-            $(element).datepicker(options);
+        setupMessageTest({ splash: text, splashTimeout: 1, show: String.empty, hide: String.empty });
 
-            //handle the field changing
-            ko.utils.registerEventHandler(element, "change", function () {
-                var observable = valueAccessor();
-                observable($(element).datepicker("getDate"));
-            });
+        var actualText = $(splashQuery).html();
+        equal(text, actualText, "It should show a splash message with correct text");
 
-            //handle disposal (if KO removes by the template binding)
-            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                $(element).datepicker("destroy");
-            });
+        setTimeout(function () {
+            equal($(splashQuery).length, 0, "It should hide and remove splash after a second"); //TODO: make splash time a bindable option
+            start();
+        }, 50)
+    })
 
-        },
-        update: function (element, valueAccessor) {
-            var value = ko.utils.unwrapObservable(valueAccessor());
+    test("When updating message observable with a alert message", function () {
+        var text = "Test";
+        window.alert = function (value) {
+            equal(value, text, "It should show a alert message with correct text");
+        };
+        setupMessageTest({ alert: text });
+    });
 
-            //handle date data coming via json from Microsoft
-            if (String(value).indexOf('/Date(') == 0) {
-                value = new Date(parseInt(value.replace(/\/Date\((.*?)\)\//gi, "$1")));
-            }
+    test("When updating message observable with a confirm message", function () {
+        var text = "Test";
+        var confirmResult = "Test";
 
-            current = $(element).datepicker("getDate");
+        window.confirm = function (value) {
+            equal(value, text, "It should show a confirm message with correct text");
+            return confirmResult;
+        };
 
-            if (value - current !== 0) {
-                $(element).datepicker("setDate", value);
-            }
-        }
+        var args = { confirm: text };
+        setupMessageTest(args);
+        equal(args.result, confirmResult, "It should have correct confirm result");
+    });
+
+    module("Datepicker binding");
+
+    var datePickerTest = function (date, assert, opt) {
+        var observable = ko.observable(date);
+        ko.test("input", { datepicker: observable, datepickerOptions: opt }, function (input) {
+            assert(input, observable);
+            $(".ui-datepicker").remove();
+        });
     };
 
-    ko.bindingHandlers.button = {
-        initIcon: function (options) {
-            if (options.icon) {
-                options.icons = { primary: options.icon };
-            }
-        },
-        init: function (element, valueAccessor) {
-            var options = ko.utils.unwrapObservable(ko.toJS(valueAccessor())) || {};
-            ko.bindingHandlers.button.initIcon(options);
+    test("When updating datepicker observable with a date", function () {
+        var date = new Date(2007);
+        datePickerTest(date, function (input) {
+            var actualDate = input.val();
+            equal($(input).datepicker("getDate").year, date.year, "It should set the correct date");
+        });
+    });
 
-            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                $(element).button("destroy");
-            });
+    test("When setting new date from datepicker", function () {
+        var oldDate = new Date(2007);
+        datePickerTest(oldDate, function (input, observable) {
+            var date = new Date(2008);
+            $(input).datepicker("setDate", date);
 
-            $(element).button(options);
-        },
-        update: function (element, valueAccessor) {
-            var options = ko.toJS(valueAccessor());
-            ko.bindingHandlers.button.initIcon(options);
+            equal(observable().year, date.year, "It should update observable with correct date");
+        });
+    });
 
-            if (options) {
-                $(element).button(options);
-            }
-        }
+    test("When supplying options", function () {
+        var date = new Date(2007);
+        var orgDatePicker = $.fn.datepicker;
+        var options = {};
+
+        $.fn.datepicker = function (opt) {
+            if (typeof (opt) == "string") return;
+
+            equal(opt, options, "It should use those options for the datepicker");
+        };
+
+        datePickerTest(date, function (input, observable) {
+
+        }, options);
+
+        $.fn.datepicker = orgDatePicker;
+    });
+
+    module("Button binding");
+
+    var buttonTest = function (opt, assert, bindings) {
+        ko.test("button", ko.utils.extend({ button: opt }, bindings), function (button) {
+            assert(button);
+        });
     };
 
-    ko.bindingHandlers.dialog = {
-        init: function (element) {
-            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                $(element).dialog("destroy");
-            });
-        },
-        update: function (element, valueAccessor) {
-            var options = ko.toJS(valueAccessor());
+    test("When using the button binding with a icon option", function () {
+        buttonTest({ icon: "test-icon", label: "Test" }, function (button) {
+            equal(button.find(".ui-button-icon-primary").length, 1, "It should have added the icon");
+        });
+    });
 
-            if (options) {
-                $(element).dialog(options);
-            }
-        }
-    };
-
-    ko.bindingHandlers.openDialog = {
-        update: function (element, valueAccessor) {
-            var value = ko.utils.unwrapObservable(valueAccessor());
-            if (value) {
-                $(element).dialog("open");
-            } else {
-                $(element).dialog("close");
-            }
-        }
-    };
-
-    ko.bindingHandlers.label = {
-        counter: 0,
-        init: function (element, valueAccessor) {
-            var options = ko.utils.unwrapObservable(valueAccessor()) || {};
-            var wrapped = $(element);
-            var id = wrapped.attr("id");
-            if (!String.hasValue(id)) {
-                id = "label-" + ko.bindingHandlers.label.counter++;
-                wrapped.attr("id", id);
-            }
-            var label = $("<label/>");
-            label.attr("for", id);
-            if (options.title) {
-                label.attr("title", options.title);
-            }
-            label.insertAfter(wrapped);
-
-            ko.applyBindingsToNode(label[0], { text: options.caption });
-        }
-    };
-
-    ko.bindingHandlers.selected = {
-        init: function (element, valueAccessor, allBindingsAccessor) {
-            var selected = valueAccessor();
-            var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
-            var key = allBindingsAccessor().optionsKey ? allBindingsAccessor().optionsKey : allBindingsAccessor().optionsText;
-
-            var observable = ko.computed({
-                read: function () {
-                    var value = ko.utils.unwrapObservable(selected);
-                    return ko.utils.arrayFirst(items, function (item) {
-                        return value != null ? ko.utils.unwrapObservable(item[key]) == ko.utils.unwrapObservable(value[key]) : false;
-                    });
-                },
-                write: function (value) {
-                    writeValueToProperty(selected, allBindingsAccessor, "selected", value);
-                }
-            });
-
-            ko.applyBindingsToNode(element, { value: observable });
-        }
-    };
-
-    ko.bindingHandlers.tabs = {
-        init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-            ko.renderTemplate(tabsTemplate, bindingContext.createChildContext(valueAccessor()), { templateEngine: stringTemplateEngine }, element, "replaceChildren");
-
-            var tabs = ko.utils.unwrapObservable(valueAccessor())
-            config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
-            config.initialized = config.initialized || false;
-
-            if (config.enable && ko.isObservable(config.enable)) {
-                config.enable.subscribe(function (enable) {
-                    if(config.initialized){                    
-                        if (enable) {
-                            $(element).tabs({ disabled: [] });
-                        } else {
-                            var index = 0;
-                            var indexes = ko.utils.arrayMap(tabs, function () { return index++ });
-                            $(element).tabs({ disabled: indexes });
-                        }
-                    }
-                });
-
-                config.enable = null;
-            }
-
-            if (config.selectedTab && ko.isObservable(config.selectedTab)) {
-                var updating = false;
-                var onSelectedChangeCallback = function (value) {
-                    if (updating) return;
-
-                    updating = true;
-                    var newIndex = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
-                        return ko.utils.unwrapObservable(item.model) == value;
-                    }));
-
-                    if(config.initialized){  
-                        $(element).tabs("option", "selected", newIndex);
-                    }
-
-                    config.selected = newIndex;
-                    updating = false;
-                };
-
-                config.selectedTab.subscribe(onSelectedChangeCallback);
-                onSelectedChangeCallback(config.selectedTab());
-
-                config.select = function (event, ui) {
-                    if (updating) return;
-
-                    updating = true;
-                    config.selectedTab(ko.utils.unwrapObservable(tabs[ui.index].model));
-                    updating = false;
-                };
-            }
-
-            var onHistory = function () {
-                if (notNavigating) return;
-                if (String.hasValue(window.location.hash)) {
-                    navigating = true;
-                    if(config.initialized){  
-                        $(element).tabs("select", window.location.hash);
-                    }
-                    navigating = false;
-                }
+    test("When using the button binding with observable label", function () {
+        var expectedText = "Test"
+        var label = ko.observable(expectedText);
+        buttonTest({ label: label }, function (button) {
+            var getButtonText = function () {
+                return button.find(".ui-button-text").html();
             };
+            equal(getButtonText(), expectedText, "It should have a initial text set");
 
-            if (history && history.pushState) {
-                var setState = function (state) {
-                    history.pushState(state, null, state);
-                };
+            actualText = "NewValue";
+            label(expectedText);
+            equal(getButtonText(), expectedText, "It should update button label with correct text");
+        });
+    });
 
-                window.onpopstate = onHistory;
-            }
-            else if ($.address) {
-                var setState = function (state) {
-                    window.location.hash = state;
-                };
+    test("When disabling the button from click handler", function () {
+        var enabled = ko.observable(true);
+        var click = function () {
+            enabled(false);
+        };
 
-                $.address.change(onHistory);
-            }
+        buttonTest({ icon: "test-icon", label: "Test" }, function (button) {
+            button.focus();
+            button.click();
+            equal(button.is(".ui-state-focus"), false, "It should not appear active");
+        }, { click: click, enable: enabled });
+    });
 
-            if (setState != null) {
-                var orgSelect = config.select;
-                var notNavigating = false;
-                var navigating = false;
-                config.select = function (event, ui) {
-                    notNavigating = true;
-                    if (orgSelect) orgSelect(event, ui);
+    module("Dialog binding");
 
-                    if (!navigating) {
-                        setState(ui.tab.hash);
-                    }
-                    notNavigating = false;
-                };
-            }
+    test("When using a dialog binding", function () {
+        var expectedTitle = "Test";
+        ko.test("button", { dialog: { title: expectedTitle} }, function (dialog) {
+            equal(dialog.data("dialog").options.title, expectedTitle, "It should configure dialog with correct options");
+        });
+    });
 
-            $(element).tabs(config);
-            config.initialized = true;
-            
-            return { controlsDescendantBindings: true };
-        },
-        update: function (element, valueAccessor, allBindingsAccessor) {
-            var tabs = ko.utils.unwrapObservable(valueAccessor());
+    test("When using a dialog binding with a openDialog binding", function () {
+        var open = ko.observable(false);
+        ko.test("button", { dialog: { autoOpen: false }, openDialog: open }, function (dialog) {
+            equal(dialog.is(":hidden"), true, "It should be closed from the start");
+            open(true);
+            equal(dialog.is(":hidden"), false, "It should listen on observable and open dialog");
+        });
+    });
 
-            ko.utils.arrayForEach(tabs, function (tab) {
-                if (tab.enable.subscribed) return;
-                tab.enable.subscribed = true; //Hack to avoid multiple subscriptions
-                tab.enable.subscribe(function (enable) {
-                    var index = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
-                        return item == tab;
-                    }));
+    module("Label binding");
 
-                    if (enable) {
-                        $(element).tabs("enable", index);
-                    } else {
-                        $(element).tabs("disable", index);
-                    }
-
-                });
-            });
-
-            if ($(element).tabs("length") == tabs.length) return;
-
-            config = $(element).tabs("option");
-            $(element).tabs("destroy").tabs(config);
-        }
-
+    var labelTest = function (opt, assert) {
+        ko.test("input type='checkbox'", { label: opt }, function (checkbox) {
+            var label = checkbox.siblings("label");
+            assert(checkbox, label);
+            label.remove();
+        });
     };
 
-    ko.TabViewModel = function (id, title, model, template) {
-        this.id = ko.observable(id);
-        this.title = ko.observable(title);
-        this.model = ko.observable(model);
-        this.template = template;
-        this.enable = ko.observable(true);
+    test("When using a label binding", function () {
+        var text = "Test";
+        var checkboxId = "label-0";
+        labelTest({ title: text, caption: text }, function (checkbox, label) {
+            equal(label.html(), text, "It should have correct caption");
+            equal(label.attr("title"), text, "It should have correct title");
+            equal(checkbox.attr("id"), checkboxId, "It should have correct id");
+        });
+    });
+
+    test("When using a label binding and click on the label", function () {
+        labelTest({}, function (checkbox, label) {
+            label.click();
+            equal(checkbox.is(":checked"), true, "It should effect input also");
+        });
+    });
+
+    module("Tabs Binding");
+
+    var tabsTest = function (opt, assert) {
+        var template = $("<script id='tmpl' type='text/html'></script>").appendTo("body");
+
+        var tabs = ko.observableArray([new ko.TabViewModel(1, "Tab1", {}, "tmpl"), new ko.TabViewModel(2, "Tab2", {}, "tmpl")])
+        ko.test("div", { tabs: tabs, tabsOptions: opt }, function (element) {
+            var addTab = function () {
+                var id = tabs()[tabs().length - 1].id() + 1;
+                tabs.push(new ko.TabViewModel(id, "Tab" + id, {}, "tmpl"));
+            };
+            assert(element, tabs(), addTab);
+            template.remove();
+        });
     };
 
-    //string template source engine
-    var stringTemplateSource = function (template) {
-        this.template = template;
+    test("When using a tab binding", function () {
+        tabsTest({}, function (element) {
+            var query = element.find("ul li")
+            equal(query.length, 2, "It should reflect number of tabs");
+            equal(query.find("a:first").html(), "Tab1", "It should have correct tab title");
+        });
+    });
+
+    test("When using a tab binding and setting selectedTab", function () {
+        var selectedTab = ko.observable();
+        tabsTest({ selectedTab: selectedTab }, function (element, tabs) {
+            selectedTab(tabs[1].model());
+            equal(element.find("ul li.ui-tabs-selected").length, 1, "It should have selected tab2");
+        });
+    });
+
+    test("When using a tab binding and selecting tab 2", function () {
+        var selectedTab = ko.observable();
+        tabsTest({ selectedTab: selectedTab }, function (element, tabs) {
+            element.find("ul li:last a").click()
+            equal(selectedTab(), tabs[1].model(), "It should have updated selectedTab observable correctly");
+        });
+    });
+
+    test("When binding the enable option to false", function () {
+        var enabled = ko.observable(true);
+        tabsTest({ enable: enabled, selectedTab: ko.observable(null) }, function (element, tabs) {
+            enabled(false);
+            equal(element.find("ul li.ui-state-disabled").length, 2, "It should disable all tabs");
+        });
+    });
+
+    test("When binding the enable option for a tab to false", function () {
+        tabsTest({ selectedTab: ko.observable(null) }, function (element, tabs) {
+            tabs[1].enable(false);
+            equal(element.find("ul li.ui-state-disabled").length, 1, "It should disable last tab");
+        });
+    });
+
+    test("When adding a tab", function () {
+        tabsTest({ selectedTab: ko.observable(null) }, function (element, tabs, addTab) {
+            addTab();
+            ok(element.find("ul li:last").attr("class") != null, "It should add jQuery tab stuff to button");
+            equal(element.find("div.ui-tabs-panel").length, 3, "It should add jQuery tab stuff to the tab itself");
+        });
+    });
+
+    module("Selected Binding");
+
+    var selectedBindingTest = function (items, selected, expected) {
+        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: ko.observable(selected) }, function (select, args) {
+            args.async = true;
+            setTimeout(function () {
+                equal($(":selected", select).html(), expected, "It should set correct selected item");
+                args.clean();
+                start();
+            }, 1);
+        });
     };
 
-    stringTemplateSource.prototype.text = function () {
-        return this.template;
-    };
+    asyncTest("When using a selected binding with preselected item", function () {
+        var expected = "test2";
+        var items = ko.observableArray([{ name: "test1" }, { name: expected}]);
+        var selected = { name: expected };
 
-    var stringTemplateEngine = new ko.nativeTemplateEngine();
-    stringTemplateEngine.makeTemplateSource = function (template) {
-        return new stringTemplateSource(template);
-    };
+        selectedBindingTest(items, selected, expected);
+    });
 
-    var tabsTemplate = '<ul data-bind="foreach: $data">\
-    <li>\
-        <a data-bind="text: title, attr: { href: \'#tab-\' + id() }"></a>\
-    </li>\
-</ul>\
-<!-- ko foreach: $data -->\
-<div data-bind="attr: { id: \'tab-\' + id() }">\
-    <h2 data-bind="text: title"></h2>\
-    <div data-bind="template: { name: template, data: model }"></div>\
-</div>\
-<!-- /ko -->';
-} ());
+    asyncTest("When key property is a observable for selected binding", function () {
+        var expected = "Test";
+        var items = [{ name: "test2" }, { name: ko.observable(expected)}];
+        var selected = { name: expected };
+
+
+        selectedBindingTest(items, selected, expected);
+    })
+})();
