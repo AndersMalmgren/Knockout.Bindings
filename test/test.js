@@ -11,7 +11,7 @@
         ko.applyBindingsToNode(element[0], binding);
         var args = {
             clean: function () {
-                element.remove();
+               element.remove();
             }
         };
         test(element, args);
@@ -202,7 +202,7 @@
     module("Tabs Binding");
 
     var tabsTest = function (opt, assert) {
-        var template = $("<script id='tmpl' type='text/html'></script>").appendTo("body");
+        var template = $("<script id='tmpl' type='text/html'>Buset</script>").appendTo("body");
 
         var tabs = ko.observableArray([new ko.TabViewModel(1, "Tab1", {}, "tmpl"), new ko.TabViewModel(2, "Tab2", {}, "tmpl")])
         ko.test("div", { tabs: tabs, tabsOptions: opt }, function (element) {
@@ -227,7 +227,7 @@
         var selectedTab = ko.observable();
         tabsTest({ selectedTab: selectedTab }, function (element, tabs) {
             selectedTab(tabs[1].model());
-            equal(element.find("ul li.ui-tabs-selected").length, 1, "It should have selected tab2");
+            equal(element.find("ul li.ui-tabs-active a").html(), "Tab2", "It should have selected tab2");
         });
     });
 
