@@ -37,8 +37,8 @@ ViewModel.prototype = {
     disableButton: function () {
         this.buttonEnabled(false);
     },
-    increaseButton: function() {
-        this.buttonLabel(this.buttonLabel() + 1);        
+    increaseButton: function () {
+        this.buttonLabel(this.buttonLabel() + 1);
     },
     showDialog: function () {
         this.dialogItem({ message: "This is a dialog", title: "Databindable title" });
@@ -46,15 +46,18 @@ ViewModel.prototype = {
     setTabTwo: function () {
         this.selectedTabModel(this.tabs()[1].model());
     },
-    toggleTabTwo: function() {
+    toggleTabTwo: function () {
         this.tabs()[1].enable(!this.tabs()[1].enable());
     },
-    toggleTabs: function() {
+    toggleTabs: function () {
         this.tabsEnabled(!this.tabsEnabled());
     },
     addTab: function () {
         var newIndex = this.tabs().length + 1;
         this.tabs.push(new ko.TabViewModel(newIndex, "Tab " + newIndex, { content: "Content of tab " + newIndex }, "tab-template"));
+    },
+    collapse: function () {
+        this.selectedTabModel(null);
     }
 };
 

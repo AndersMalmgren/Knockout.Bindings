@@ -210,7 +210,7 @@
 
             var tabs = ko.utils.unwrapObservable(valueAccessor())
             config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
-            
+
             if (config.enable && ko.isObservable(config.enable)) {
                 config.enable.subscribe(function (enable) {
                     if (enable) {
@@ -228,9 +228,10 @@
             if (config.selectedTab && ko.isObservable(config.selectedTab)) {
                 var updating = false;
                 var getIndex = function (tab) {
-                    return ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
+                    var index = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
                         return ko.utils.unwrapObservable(item.model) === tab;
                     }));
+                    return index === -1 ? false : index;
                 };
 
                 var onSelectedChangeCallback = function (value) {
@@ -243,8 +244,7 @@
                 };
 
                 config.active = getIndex(config.selectedTab());
-                if (config.active === -1) {
-                    config.active = false;
+                if (config.active === false) {
                     config.collapsible = true;
                 }
 
