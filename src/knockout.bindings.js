@@ -210,7 +210,7 @@
 
             var tabs = ko.utils.unwrapObservable(valueAccessor())
             config = ko.utils.unwrapObservable(allBindingsAccessor().tabsOptions) || {};
-
+            
             if (config.enable && ko.isObservable(config.enable)) {
                 config.enable.subscribe(function (enable) {
                     if (enable) {
@@ -227,22 +227,28 @@
 
             if (config.selectedTab && ko.isObservable(config.selectedTab)) {
                 var updating = false;
+                var getIndex = function (tab) {
+                    return ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
+                        return ko.utils.unwrapObservable(item.model) === tab;
+                    }));
+                };
+
                 var onSelectedChangeCallback = function (value) {
                     if (updating) return;
 
                     updating = true;
-                    var newIndex = ko.utils.arrayIndexOf(tabs, ko.utils.arrayFirst(tabs, function (item) {
-                        return ko.utils.unwrapObservable(item.model) == value;
-                    }));
-
-                    $(element).tabs("option", "selected", newIndex);
-
-                    config.selected = newIndex;
+                    var newIndex = getIndex(value);
+                    $(element).tabs("option", "active", newIndex);
                     updating = false;
                 };
 
+                config.active = getIndex(config.selectedTab());
+                if (config.active === -1) {
+                    config.active = false;
+                    config.collapsible = true;
+                }
+
                 config.selectedTab.subscribe(onSelectedChangeCallback);
-                onSelectedChangeCallback(config.selectedTab());
 
                 config.select = function (event, ui) {
                     if (updating) return;
