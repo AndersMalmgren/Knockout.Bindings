@@ -11,7 +11,7 @@
         ko.applyBindingsToNode(element[0], binding);
         var args = {
             clean: function () {
-               element.remove();
+                element.remove();
             }
         };
         test(element, args);
@@ -264,8 +264,8 @@
 
     module("Selected Binding");
 
-    var selectedBindingTest = function (items, selected, expected) {
-        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: ko.observable(selected) }, function (select, args) {
+    var selectedBindingTest = function (items, selected, expected, optionsKey) {
+        ko.test("select", { options: items, optionsText: "name", optionsCaption: " ", selected: ko.observable(selected), optionsKey: optionsKey }, function (select, args) {
             args.async = true;
             setTimeout(function () {
                 equal($(":selected", select).html(), expected, "It should set correct selected item");
@@ -290,5 +290,16 @@
 
 
         selectedBindingTest(items, selected, expected);
+    })
+
+    asyncTest("When key is a function", function () {
+        var expected = "Test";
+        var items = [{ name: "test2" }, { name: expected }];
+        var selected = { name: expected };
+        var key = function (item, value) {
+            return item.name === value.name;
+        };
+
+        selectedBindingTest(items, selected, expected, key);
     })
 })();

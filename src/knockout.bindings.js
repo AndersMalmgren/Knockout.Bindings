@@ -185,23 +185,35 @@
     ko.bindingHandlers.selected = {
         init: function (element, valueAccessor, allBindingsAccessor) {
             var selected = valueAccessor();
-            var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
             var key = allBindingsAccessor().optionsKey ? allBindingsAccessor().optionsKey : allBindingsAccessor().optionsText;
+            var comparer = typeof key === "function" ? ko.bindingHandlers.selected.functionComparer : ko.bindingHandlers.selected.keyComparer;
 
             var observable = ko.computed({
                 read: function () {
+                    var items = ko.utils.unwrapObservable(allBindingsAccessor().options);
                     var value = ko.utils.unwrapObservable(selected);
+                    if (value === null || value === undefined) {
+                        return value;
+                    }
                     return ko.utils.arrayFirst(items, function (item) {
-                        return value != null ? ko.utils.unwrapObservable(item[key]) == ko.utils.unwrapObservable(value[key]) : false;
+                        return comparer(item, key, value);
                     });
                 },
                 write: function (value) {
                     writeValueToProperty(selected, allBindingsAccessor, "selected", value);
-                }
+                },
+                disposeWhenNodeIsRemoved: element
             });
 
             ko.applyBindingsToNode(element, { value: observable });
+        },
+        keyComparer: function (item, key, value) {
+            return ko.utils.unwrapObservable(item[key]) === ko.utils.unwrapObservable(value[key]);
+        },
+        functionComparer: function (item, key, value) {
+            return key(item, value);
         }
+
     };
 
     ko.bindingHandlers.tabs = {
