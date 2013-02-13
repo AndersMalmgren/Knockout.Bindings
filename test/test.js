@@ -231,6 +231,20 @@
         });
     });
 
+    test("When using a tab binding and changing tab but cancels select", function () {
+        var selectedTab = ko.observable();
+        var onTabChanging = function (args) {
+            args.cancel = true;
+        };
+
+        tabsTest({ selectedTab: selectedTab, onTabChanging: onTabChanging }, function (element, tabs) {
+            element.find("ul li:last a").click()
+
+            equal(selectedTab(), null, "It should not have selected tab2");
+            equal(element.find(".ui-tabs-panel:visible").length, 0, "It should not show tab");
+        });
+    });
+
     test("When using a tab binding and selecting tab 2", function () {
         var selectedTab = ko.observable();
         tabsTest({ selectedTab: selectedTab }, function (element, tabs) {
@@ -294,7 +308,7 @@
 
     asyncTest("When key is a function", function () {
         var expected = "Test";
-        var items = [{ name: "test2" }, { name: expected }];
+        var items = [{ name: "test2" }, { name: expected}];
         var selected = { name: expected };
         var key = function (item, value) {
             return item.name === value.name;

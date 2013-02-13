@@ -265,8 +265,17 @@
                 config.select = function (event, ui) {
                     if (updating) return;
 
+                    var selectedModel = ko.utils.unwrapObservable(tabs[ui.index].model);
+
+                    if (config.onTabChanging !== undefined) {
+                        var args = { cancel: false, currentModel: config.selectedTab(), selectedModel: selectedModel };
+                        config.onTabChanging(args);
+
+                        if (args.cancel) return false;
+                    }
+
                     updating = true;
-                    config.selectedTab(ko.utils.unwrapObservable(tabs[ui.index].model));
+                    config.selectedTab(selectedModel);
                     updating = false;
                 };
             }
@@ -301,12 +310,16 @@
                 var navigating = false;
                 config.select = function (event, ui) {
                     notNavigating = true;
-                    if (orgSelect) orgSelect(event, ui);
+                    result = true;
+
+                    if (orgSelect)
+                        result = orgSelect(event, ui);
 
                     if (!navigating) {
                         setState(ui.tab.hash);
                     }
                     notNavigating = false;
+                    return result;
                 };
             }
 
