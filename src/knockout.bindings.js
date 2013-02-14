@@ -269,7 +269,7 @@
 
                     if (config.onTabChanging !== undefined) {
                         var args = { cancel: false, currentModel: config.selectedTab(), selectedModel: selectedModel };
-                        config.onTabChanging(args);
+                        config.onTabChanging.call(viewModel, args);
 
                         if (args.cancel) return false;
                     }
