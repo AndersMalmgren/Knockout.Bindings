@@ -156,19 +156,29 @@
 
     module("Dialog binding");
 
-    test("When using a dialog binding", function () {
+    asyncTest("When using a dialog binding", function () {
         var expectedTitle = "Test";
-        ko.test("button", { dialog: { title: expectedTitle} }, function (dialog) {
-            equal(dialog.data("dialog").options.title, expectedTitle, "It should configure dialog with correct options");
+        ko.test("button", { dialog: { title: expectedTitle} }, function (dialog, args) {
+            setTimeout(function () {
+                equal(dialog.data("dialog").options.title, expectedTitle, "It should configure dialog with correct options");
+                args.clean();
+                start();
+            }, 0);
         });
     });
 
-    test("When using a dialog binding with a openDialog binding", function () {
+    asyncTest("When using a dialog binding with a openDialog binding", function () {
         var open = ko.observable(false);
-        ko.test("button", { dialog: { autoOpen: false }, openDialog: open }, function (dialog) {
-            equal(dialog.is(":hidden"), true, "It should be closed from the start");
-            open(true);
-            equal(dialog.is(":hidden"), false, "It should listen on observable and open dialog");
+        ko.test("button", { dialog: { autoOpen: false }, openDialog: open }, function (dialog, args) {
+            setTimeout(function () {
+                equal(dialog.is(":hidden"), true, "It should be closed from the start");
+                open(true);
+                setTimeout(function () {
+                    equal(dialog.is(":hidden"), false, "It should listen on observable and open dialog");
+                    args.clean();
+                    start();
+                }, 0);
+            }, 0);
         });
     });
 

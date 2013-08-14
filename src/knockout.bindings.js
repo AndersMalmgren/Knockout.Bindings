@@ -145,7 +145,9 @@
             var options = ko.toJS(valueAccessor());
 
             if (options) {
-                $(element).dialog(options);
+                setTimeout(function () {
+                    $(element).dialog(options);
+                }, 0);
             }
         }
     };
@@ -153,11 +155,13 @@
     ko.bindingHandlers.openDialog = {
         update: function (element, valueAccessor) {
             var value = ko.utils.unwrapObservable(valueAccessor());
-            if (value) {
-                $(element).dialog("open");
-            } else {
-                $(element).dialog("close");
-            }
+            setTimeout(function () {
+                if (value) {
+                    $(element).dialog("open");
+                } else {
+                    $(element).dialog("close");
+                }
+            }, 0);
         }
     };
 
