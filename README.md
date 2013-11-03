@@ -2,3 +2,6 @@ This is a set of Bindings I've used in my latest Knockout Projects, Datepicker r
 
 Test the binding from here
 http://jsfiddle.net/H8xWY/102/
+
+Knockout 3.0
+http://jsfiddle.net/H8xWY/130/
