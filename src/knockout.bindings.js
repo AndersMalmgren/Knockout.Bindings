@@ -2,8 +2,20 @@
 // (c) Anders Malmgren - https://github.com/AndersMalmgren/Knockout.Bindings
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
 // Datepicker and some other parts of library (C) Ryan Niemeyer
-
-(function () {
+(function (factory) {
+    // Module systems magic dance.
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "knockout"
+        factory(require("knockout"), exports);
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "knockout"
+        define(["knockout", "exports"], factory);
+    } else {
+        // <script> tag: use the global `ko` object, attaching a `mapping` property
+        factory(ko, ko.mapping = {});
+    }
+}(function (ko, exports) {
+    
     String.empty = "";
     String.hasValue = function (value) {
         return value != null && value != String.empty;
@@ -392,4 +404,4 @@
     <div data-bind="template: { name: template, data: model }"></div>\
 </div>\
 <!-- /ko -->';
-} ());
+}));
